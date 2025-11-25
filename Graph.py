@@ -25,17 +25,71 @@ class Graph:
     
     def showGraph(self) -> None:
         """
-        Visualizes the graph using Matplotlib. 
-        This is a blocking call (code stops until window is closed).
+        Visualizes the graph. 
+        - Nodes are drawn in a CIRCLE layout (best for density).
+        - Bidirectional edges are colored RED (u->v) and BLUE (v->u) to split them.
+        - One-way edges remain BLACK.
         """
         if self.G is None:
             print("Graph is empty.")
             return
+
+        pos = nx.circular_layout(self.G)
         
-        pos = nx.spring_layout(self.G)
-        edge_labels = nx.get_edge_attributes(self.G, 'weight')
-        nx.draw(self.G, pos, with_labels=True, node_color='lightblue', node_size=500)
-        nx.draw_networkx_edge_labels(self.G, pos, edge_labels=edge_labels)
+        plt.figure("Graph Visualization", figsize=(8, 8))
+        
+        nx.draw_networkx_nodes(self.G, pos, node_color='lightblue', node_size=300)
+        nx.draw_networkx_labels(self.G, pos, font_size=12, font_weight='bold')
+
+        # We need three groups:
+        # - Red: Part of a pair, going 'forward' (small -> big ID)
+        # - Blue: Part of a pair, going 'backward' (big -> small ID)
+        # - Black: Standard one-way edges
+        red_edges = []
+        blue_edges = []
+        black_edges = []
+
+        for u, v in self.G.edges():
+            if self.G.has_edge(v, u): # Check if the return path exists (Bidirectional)
+                if u < v:
+                    red_edges.append((u, v))
+                else:
+                    blue_edges.append((u, v))
+            else:
+                black_edges.append((u, v))
+
+        #Black (Standard)
+        nx.draw_networkx_edges(self.G, pos, edgelist=black_edges, 
+                               edge_color='black', arrows=True, connectionstyle='arc3, rad=0.1')
+        
+        #Red (Outgoing pair)
+        nx.draw_networkx_edges(self.G, pos, edgelist=red_edges, 
+                               edge_color='red', arrows=True, connectionstyle='arc3, rad=0.1')
+        
+        #Blue (Incoming pair)
+        nx.draw_networkx_edges(self.G, pos, edgelist=blue_edges, 
+                               edge_color='blue', arrows=True, connectionstyle='arc3, rad=0.1')
+
+        all_weights = nx.get_edge_attributes(self.G, 'weight')
+        
+        # Helper to draw a subset of labels with a specific color
+        def draw_labels_subset(edge_subset, color):
+            subset_dict = {e: all_weights[e] for e in edge_subset if e in all_weights}
+            nx.draw_networkx_edge_labels(
+                self.G, pos, 
+                edge_labels=subset_dict,
+                font_color=color,    # <--- Text matches arrow color
+                font_size=9, 
+                font_weight='bold',
+                label_pos=0.25,      # Close to the target node
+                bbox=dict(facecolor='white', edgecolor='none', alpha=0.8)
+            )
+
+        draw_labels_subset(black_edges, 'black')
+        draw_labels_subset(red_edges, 'red')
+        draw_labels_subset(blue_edges, 'blue')
+
+        plt.axis('off')
         plt.show()
         
     def getGraph(self) -> nx.DiGraph:
