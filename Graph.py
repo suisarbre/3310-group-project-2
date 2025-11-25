@@ -2,10 +2,11 @@ import networkx as nx
 import random
 import matplotlib.pyplot as plt
 import numpy as np
+from typing import Optional
 
 class Graph:
     G : nx.DiGraph = None
-    def __init__(self,n:int,density:float,weightRange:tuple=(1,100), Randomseed:int=11252025) -> None:
+    def __init__(self,n:int,density:float,weightRange:tuple=(1,100), Randomseed:Optional[int]=None) -> None:
         """
         Initializes a random directed weighted graph.
 
@@ -13,15 +14,18 @@ class Graph:
             n (int): The number of vertices (nodes).
             density (float): The probability of an edge creation (0.0 to 1.0).
             weightRange (tuple): The range (min, max) for random edge weights.
+            Randomseed (int, Optional): Seed for random number generator for reproducibility.
         """
-        
         # Seed is set for reproducibility during debugging. 
-        # TODO: Remove seed=11252025 before running final benchmarks to get random results.
+        if Randomseed is not None:
+            random.seed(Randomseed)
+        
+        
         self.G = nx.gnp_random_graph(n, density, seed=Randomseed, directed=True)
+        
         
         # Add Weights (random within specified range, default 1-100)
         for (u, v) in self.G.edges():
-            random.seed(Randomseed + u * len(self.G) + v) # Seed for reproducibility during debugging
             self.G.edges[u, v]['weight'] = random.randint(weightRange[0], weightRange[1])
     
     def showGraph(self) -> None:
@@ -93,6 +97,67 @@ class Graph:
         plt.axis('off')
         plt.show()
         
+    def showGraphPath(self, path: list[int]) -> None:
+        """
+        Visualizes the specific path taken by an algorithm.
+        - Background: Grey (faded)
+        - Path Nodes: Light Blue
+        - Path Edges: Blue & Thick
+        """
+        if self.G is None:
+            print("Graph is empty.")
+            return
+        if not path or len(path) == 0:
+            print("Path is empty.")
+            return
+
+        pos = nx.circular_layout(self.G)
+        plt.figure("Path Visualization", figsize=(8, 8))
+        
+        # --- PREPARATION ---
+        # 1. Identify Path Edges (pairs of u->v)
+        # If path is [0, 2, 5], path_edges is [(0,2), (2,5)]
+        path_edges = list(zip(path, path[1:]))
+        
+        #Separate Nodes into "Path" and "Non-Path"
+        path_nodes_set = set(path)
+        non_path_nodes = [n for n in self.G.nodes() if n not in path_nodes_set]
+
+        # Draw non-path nodes faint
+        nx.draw_networkx_nodes(self.G, pos, nodelist=non_path_nodes, 
+                               node_color='lightgrey', node_size=300, alpha=0.5)
+        
+        # Draw ALL edges faint (so you can see alternative routes)
+        nx.draw_networkx_edges(self.G, pos, edge_color='lightgrey', 
+                               arrows=True, connectionstyle='arc3, rad=0.1', alpha=0.5)
+        
+        # Draw ALL labels faint
+        all_weights = nx.get_edge_attributes(self.G, 'weight')
+        nx.draw_networkx_edge_labels(self.G, pos, edge_labels=all_weights, 
+                                     font_color='grey', font_size=8, label_pos=0.3, alpha=0.5)
+
+        # Draw Path Nodes (Bigger & Blue)
+        nx.draw_networkx_nodes(self.G, pos, nodelist=path, 
+                               node_color='skyblue', node_size=600, edgecolors='blue')
+        
+        # Draw Node Labels
+        nx.draw_networkx_labels(self.G, pos, font_size=12, font_weight='bold')
+
+        # Draw Path Edges (Thick & Blue)
+        nx.draw_networkx_edges(self.G, pos, edgelist=path_edges, 
+                               edge_color='blue', width=2.5, # Thicker line
+                               arrows=True, connectionstyle='arc3, rad=0.1')
+        
+        # Only show the weights of the edges we actually took in bold
+        path_weights = {e: all_weights[e] for e in path_edges if e in all_weights}
+        nx.draw_networkx_edge_labels(self.G, pos, edge_labels=path_weights, 
+                                     font_color='blue', font_weight='bold', font_size=10, 
+                                     label_pos=0.3, bbox=dict(facecolor='white', edgecolor='blue', alpha=0.9))
+
+        plt.title(f"Path: {path}, weight = {sum(path_weights.values())}")
+        plt.axis('off')
+        plt.show()
+
     def getGraph(self) -> nx.DiGraph:
         """
         Returns the underlying NetworkX graph object.
@@ -200,10 +265,31 @@ class Graph:
         if self.G.has_node(u):
             self.G.remove_node(u)
             
+    def getNodes(self):
+        """
+        Helper for Repeated Dijkstra: Returns list of all node IDs.
+        """
+        return list(self.G.nodes())
+
+    def getNeighbors(self, u: int):
+        """
+        Helper for Dijkstra: Returns neighbors of u and the edge weights.
+        Args:
+            u (int): The vertex whose neighbors are requested.
+        Returns: Dict {neighbor_id: weight}
+        """
+        # The prompt allows 'iterate neighbors' and 'read weights' [cite: 12]
+        # internal NetworkX structure: G[u] returns {v1: {attr}, v2: {attr}}
+        neighbors = {}
+        if self.G.has_node(u):
+            for v, attr in self.G[u].items():
+                neighbors[v] = attr['weight']
+        return neighbors
+            
             
 if __name__ == "__main__":
     print("Generating Graph...")
-    my_graph = Graph(30, 0.1, Randomseed=11252025)
+    my_graph = Graph(6, 0.1)
     weights = my_graph.getEdgeWeights()
     print("Edge Weights:", weights)
     
