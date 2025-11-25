@@ -59,7 +59,7 @@ def run_dijkstra(graph_obj, start_node, end_node):
 
 
 if __name__ == "__main__":
-    nodes = 6
+    nodes = 10
     
     my_graph = Graph(nodes, 0.8) 
     
