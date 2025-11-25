@@ -5,7 +5,7 @@ import numpy as np
 
 class Graph:
     G : nx.DiGraph = None
-    def __init__(self,n:int,density:float,weightRange:tuple=(1,100)) -> None:
+    def __init__(self,n:int,density:float,weightRange:tuple=(1,100), Randomseed:int=11252025) -> None:
         """
         Initializes a random directed weighted graph.
 
@@ -17,10 +17,11 @@ class Graph:
         
         # Seed is set for reproducibility during debugging. 
         # TODO: Remove seed=11252025 before running final benchmarks to get random results.
-        self.G = nx.gnp_random_graph(n, density, seed=11252025, directed=True)
+        self.G = nx.gnp_random_graph(n, density, seed=Randomseed, directed=True)
         
         # Add Weights (random within specified range, default 1-100)
         for (u, v) in self.G.edges():
+            random.seed(Randomseed + u * len(self.G) + v) # Seed for reproducibility during debugging
             self.G.edges[u, v]['weight'] = random.randint(weightRange[0], weightRange[1])
     
     def showGraph(self) -> None:
@@ -202,7 +203,7 @@ class Graph:
             
 if __name__ == "__main__":
     print("Generating Graph...")
-    my_graph = Graph(6, 0.8)
+    my_graph = Graph(30, 0.1, Randomseed=11252025)
     weights = my_graph.getEdgeWeights()
     print("Edge Weights:", weights)
     
