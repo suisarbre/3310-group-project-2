@@ -21,8 +21,32 @@ class Graph:
             random.seed(Randomseed)
         
         
-        self.G = nx.gnp_random_graph(n, density, seed=Randomseed, directed=True)
+        # self.G = nx.gnp_random_graph(n, density, seed=Randomseed, directed=True)
         
+        self.G = nx.DiGraph()
+        self.G.add_nodes_from(range(n))
+        
+        #Enforces connectivity by creating a ring first
+        nodes=list(self.G.nodes())
+        random.shuffle(nodes)
+        for i in range(n):
+            u = nodes[i]
+            v = nodes[(i+1)%n]  # Ensure at least a cycle exists
+            self.G.add_edge(u, v)
+        
+        max_edges = n * (n - 1)  # Max possible edges in a directed graph without self-loops
+        desired_edges = int(density * max_edges)
+        
+        if desired_edges<n:
+            print(f"Warning: Density {density} is too low for connectivity. Graph will have minimum of {n} edges.")
+            desired_edges=n  # At least the cycle edges
+            
+        while self.G.number_of_edges() < desired_edges:
+            u = random.randint(0, n - 1)
+            v = random.randint(0, n - 1)
+            if u != v and not self.G.has_edge(u, v):
+                self.G.add_edge(u, v)
+                
         
         # Add Weights (random within specified range, default 1-100)
         for (u, v) in self.G.edges():
@@ -115,7 +139,7 @@ class Graph:
         plt.figure("Path Visualization", figsize=(8, 8))
         
         # --- PREPARATION ---
-        # 1. Identify Path Edges (pairs of u->v)
+        # Identify Path Edges (pairs of u->v)
         # If path is [0, 2, 5], path_edges is [(0,2), (2,5)]
         path_edges = list(zip(path, path[1:]))
         
@@ -289,14 +313,25 @@ class Graph:
             
 if __name__ == "__main__":
     print("Generating Graph...")
-    my_graph = Graph(6, 0.1)
+    my_graph = Graph(20, 0.1)
     weights = my_graph.getEdgeWeights()
-    print("Edge Weights:", weights)
-    
+    print("Edge Weights Before Adding Path Edges:", weights)
+    print("Adjacency Matrix Before Adding Path Edges:")
+    mat = my_graph.getAdjacencyMatrix()
+    print(mat)
 
     print("Visualizing...")
     my_graph.showGraph()
     
-    print("Adjacency Matrix:")
+    path= [0, 2, 5]
+    my_graph.addEdge(0,2,10)
+    my_graph.addEdge(2,5,20)
+    print(f"Visualizing Path: {path}")
+    my_graph.showGraphPath(path)
+    
+    weights = my_graph.getEdgeWeights()
+    print("Edge Weights After Adding Path Edges:", weights)
+    print("Adjacency Matrix After Adding Path Edges:")
     mat = my_graph.getAdjacencyMatrix()
     print(mat)
+    

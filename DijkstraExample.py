@@ -59,12 +59,12 @@ def run_dijkstra(graph_obj, start_node, end_node):
 
 
 if __name__ == "__main__":
-    nodes = 10
+    nodes = 20
     
-    my_graph = Graph(nodes, 0.8) 
-    
+    my_graph = Graph(nodes, 0.01) 
     start_id = 0
     end_id = nodes//2
+    my_graph.removeEdge(0,end_id) # Remove direct edge just to make it more interesting
     
     print(f"--- Running Dijkstra from {start_id} to {end_id} ---")
 
@@ -78,4 +78,7 @@ if __name__ == "__main__":
         
     # Look for the path 0 -> ... -> 5 and add up the edge weights
     my_graph.showGraphPath(path)
+    import networkx as nx
+    comparison = nx.dijkstra_path(my_graph.getGraph(), start_id, end_id)
+    my_graph.showGraphPath(comparison)
     
