@@ -178,7 +178,7 @@ class Graph:
                                      font_color='blue', font_weight='bold', font_size=10, 
                                      label_pos=0.3, bbox=dict(facecolor='white', edgecolor='blue', alpha=0.9))
 
-        plt.title(f"Path: {path}, weight = {sum(path_weights.values())}")
+        plt.title(f"Path: {path}\nweight = {sum(path_weights.values())}")
         plt.axis('off')
         plt.show()
 

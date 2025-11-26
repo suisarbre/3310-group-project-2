@@ -59,7 +59,7 @@ def run_dijkstra(graph_obj, start_node, end_node):
 
 
 if __name__ == "__main__":
-    nodes = 20
+    nodes = 30
     
     my_graph = Graph(nodes, 0.01) 
     start_id = 0
