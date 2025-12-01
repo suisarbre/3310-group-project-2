@@ -64,7 +64,7 @@ if __name__ == "__main__":
     my_graph = Graph(nodes, 0.01) 
     start_id = 0
     end_id = nodes//2
-    my_graph.removeEdge(0,end_id) # Remove direct edge just to make it more interesting
+    # my_graph.removeEdge(0,end_id) # Remove direct edge just to make it more interesting
     
     print(f"--- Running Dijkstra from {start_id} to {end_id} ---")
 
