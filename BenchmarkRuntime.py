@@ -15,7 +15,7 @@
 
 import time
 from Graph import Graph
-from RepeatedDijkstra import all_pairs_dijkstra     # <-- Change name if needed
+from RepeatedDijkstra import repeated_dijkstra     # <-- Change name if needed
 from FloydWarshall import floyd_warshall            # <-- Change name if needed
 
 
@@ -54,7 +54,7 @@ def benchmark_one_setting(n, density, num_runs=5):
         # 2. Time Repeated Dijkstra
         # -------------------------
         start = time.perf_counter()
-        _ = all_pairs_dijkstra(g)   # Return value not needed for timing
+        _ = repeated_dijkstra(g)   # Return value not needed for timing
         end = time.perf_counter()
         total_dij += (end - start)
 
